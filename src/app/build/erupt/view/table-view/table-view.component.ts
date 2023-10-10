@@ -10,7 +10,8 @@ import {SettingsService} from "@delon/theme";
 })
 export class TableViewComponent implements OnInit, OnDestroy {
 
-    constructor(public route: ActivatedRoute,
+    constructor(public settings: SettingsService,
+                public route: ActivatedRoute,
                 public settingSrv: SettingsService) {
     }
 

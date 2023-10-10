@@ -17,6 +17,7 @@
         <i *ngSwitchDefault class="sidebar-nav__item-icon {{ i.value }}"></i>
     </ng-container>
 </ng-template>
+
 <ng-template #tree let-ls>
     <ng-container *ngFor="let i of ls">
         <li
@@ -66,6 +67,7 @@
         </li>
     </ng-container>
 </ng-template>
+
 <ul class="sidebar-nav">
     <ng-container *ngIf="loading">
         <nz-skeleton [nzParagraph]="{ rows: 12 }" [nzTitle]="false" [nzActive]="true" style="padding: 12px"></nz-skeleton>

@@ -7,6 +7,7 @@ import {NzModalService} from "ng-zorro-antd/modal";
 import {HeaderSearchComponent} from "./components/search.component";
 import {MenuVo} from "@shared/model/erupt-menu";
 import {AppViewService} from "@shared/service/app-view.service";
+import {Nav} from "../menu/menu.component";
 
 @Component({
     selector: "layout-header",
@@ -37,6 +38,10 @@ export class HeaderComponent implements OnInit {
 
     desc: string;
 
+    loading: boolean = true;
+
+    list: Nav[] = [];
+
     openDrawer() {
         this.drawerVisible = true;
     }
@@ -58,6 +63,8 @@ export class HeaderComponent implements OnInit {
         this.appViewService.routerViewDescSubject.subscribe(value => {
             this.desc = value;
         })
+
+
     }
 
     toggleCollapsedSidebar() {
