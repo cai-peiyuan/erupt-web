@@ -261,6 +261,7 @@ export class MenuComponent implements OnInit, OnDestroy {
             this.list = data.filter((w: Nav) => w._hidden !== true);
             cdr.detectChanges();
         });
+
         router.events.pipe(takeUntil(destroy$)).subscribe(e => {
             if (e instanceof NavigationEnd) {
                 this.openByUrl(e.urlAfterRedirects);
@@ -282,6 +283,8 @@ export class MenuComponent implements OnInit, OnDestroy {
         });
         this.openByUrl(router.url);
         this.ngZone.runOutsideAngular(() => this.genFloating());
+
+        this.showFirstMenu();
     }
 
     private fixHide(ls: Nav[]): void {
@@ -321,5 +324,16 @@ export class MenuComponent implements OnInit, OnDestroy {
         this.settings.setLayout('collapsed', status);
     }
 
-    // #endregion
+    //显示第一个菜单
+    private showFirstMenu() {
+        console.log('显示第一个菜单')
+        if (this.menuSrv.menus[0]) {
+            for (let i = 0; i < this.menuSrv.menus[0].children.length; i++) {
+                this.menuSrv.menus[0].children[i]['_hidden'] = true;
+                if (i == 0) {
+                    this.menuSrv.menus[0].children[i]['_hidden'] = false;
+                }
+            }
+        }
+    }
 }
