@@ -45,6 +45,8 @@ export class HeaderComponent implements OnInit {
 
     loading: boolean = true;
 
+    menuLoaded: boolean = false;
+
     list: Nav[] = [];
 
     private destroy$ = new Subject<void>();
@@ -94,6 +96,10 @@ export class HeaderComponent implements OnInit {
             this.loading = false;
             this.list = data.filter((w: Nav) => true);
             console.log('this.list', this.list);
+            /*if (this.list.length > 0 && this.list[0].children.length > 1 && this.menuLoaded == false) {
+                this.showFirstMenu();
+                this.menuLoaded = true;
+            }*/
             cdr.detectChanges();
         });
 
@@ -103,8 +109,14 @@ export class HeaderComponent implements OnInit {
         this.appViewService.routerViewDescSubject.subscribe(value => {
             this.desc = value;
         })
+    }
 
-
+    ngAfterInit() {
+        this.showFirstMenu();
+    }
+    
+    ngAfterContentInit() {
+        this.showFirstMenu();
     }
 
     toggleCollapsedSidebar() {
@@ -149,6 +161,14 @@ export class HeaderComponent implements OnInit {
         })
     }
 
+    //显示第一个菜单
+    private showFirstMenu() {
+        console.log('显示第一个菜单')
+        if (this.menuSrv.menus[0]) {
+            this.toModule(this.menuSrv.menus[0].children[0])
+        }
+    }
+
     /**
      * 切换到指定模块
      * @param item
@@ -156,10 +176,8 @@ export class HeaderComponent implements OnInit {
     toModule(item: Menu): void {
         console.log('左侧功能导航显示指定的模块的菜单', item)
         let key = item.key;
-
         console.log(this.menuSrv)
         for (const keyKey in this.menuSrv.menus[0].children) {
-            console.log('theKey', keyKey)
             this.menuSrv.menus[0].children[keyKey]['_hidden'] = true;
             if(this.menuSrv.menus[0].children[keyKey]['key'] == key){
                 this.menuSrv.menus[0].children[keyKey]['_hidden'] = false;
