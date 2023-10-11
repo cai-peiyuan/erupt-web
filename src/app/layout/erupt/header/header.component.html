@@ -1,3 +1,23 @@
+<ng-template #icon let-i>
+    <ng-container *ngIf="i" [ngSwitch]="i.type">
+        <i
+            *ngSwitchCase="'icon'"
+            class="sidebar-nav__item-icon"
+            nz-icon
+            [nzType]="i.value"
+            [nzTheme]="i.theme"
+            [nzSpin]="i.spin"
+            [nzTwotoneColor]="i.twoToneColor"
+            [nzIconfont]="i.iconfont"
+            [nzRotate]="i.rotate"
+        ></i>
+        <i *ngSwitchCase="'iconfont'" class="sidebar-nav__item-icon" nz-icon [nzIconfont]="i.iconfont"></i>
+        <img *ngSwitchCase="'img'" [src]="i.value" class="sidebar-nav__item-icon sidebar-nav__item-img"/>
+        <span *ngSwitchCase="'svg'" class="sidebar-nav__item-icon sidebar-nav__item-svg" [innerHTML]="i.value"></span>
+        <i *ngSwitchDefault class="sidebar-nav__item-icon {{ i.value }}"></i>
+    </ng-container>
+</ng-template>
+
 <div class="alain-default__header-logo" ripper color="#000">
     <a [routerLink]="settings.user['indexPath']" (click)="toIndex()" class="header-link" style="user-select:none">
         <img *ngIf="logoPath" [src]="logoPath" class="header-logo-img" alt=""/>
@@ -21,6 +41,7 @@
                    [ngClass]="{ 'sidebar-nav__item-disabled': group['_hidden'] }"
                 >
                     <li class="alain-default__nav-item header__nav-item" *ngIf="group.group">
+                        <ng-template [ngTemplateOutlet]="icon" [ngTemplateOutletContext]="{ $implicit: group.icon }"></ng-template>
                         <span [innerHTML]="group.text"></span>
                     </li>
                 </a>
@@ -60,30 +81,36 @@
 
         <nz-divider nzType="vertical" class="hidden-mobile" *ngIf="r_tools.length>0"></nz-divider>
 
+        <!-- 搜索菜单 -->
         <li *ngIf="menu">
             <div class="alain-default__nav-item" (click)="search()">
                 <i nz-icon nzType="search"></i>
             </div>
         </li>
 
+        <!-- 全屏按钮 -->
         <li class="hidden-mobile" (click)="toggleScreen()">
             <div class="alain-default__nav-item">
                 <i nz-icon [nzType]="isFullScreen ? 'fullscreen-exit' : 'fullscreen'"></i>
             </div>
         </li>
 
+        <!-- 多语言功能 -->
         <li>
             <div class="alain-default__nav-item">
                 <i18n-choice></i18n-choice>
             </div>
         </li>
 
-        <li>
+        <!-- 文字RTL切换 -->
+        <li style="display: none">
             <div class="alain-default__nav-item">
                 <header-rtl></header-rtl>
             </div>
         </li>
 
+
+        <!-- 界面配置 -->
         <li>
             <div class="alain-default__nav-item hidden-mobile" (click)="openDrawer()">
                 <i nz-icon nzType="setting" nzTheme="outline"></i>
@@ -99,6 +126,7 @@
             </nz-drawer>
         </li>
 
+        <!-- 用户配置 -->
         <li>
             <header-user></header-user>
         </li>

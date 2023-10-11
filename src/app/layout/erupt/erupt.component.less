@@ -1,6 +1,7 @@
 ::ng-deep {
 
-    @header-h: 44px;
+    @header-h: 70px;
+    @aside-w: 300px;
 
     .alain-default__aside {
         min-height: calc(100vh - @header-h);
@@ -12,7 +13,8 @@
 
     .erupt_content_nav {
         position: fixed;
-        top: 88px;
+        top: 75px;
+        right: 20px;
     }
 
     @media (min-width: 768px) {
@@ -77,7 +79,7 @@
 
 
 :host {
-    @header-h: 44px;
+    @header-h: 70px;
 
     .erupt-header {
         position: absolute;
@@ -138,6 +140,7 @@
 
         .reuse-tab {
             margin-top: 0 !important;
+            margin: 0 !important;
 
             .ant-tabs-nav .ant-tabs-tab .reuse-tab__name-width {
                 display: block;
@@ -151,7 +154,7 @@
         .reuse-tab__card {
             padding-top: 0;
             padding-left: 0;
-            padding-right: 0;
+            padding-right: 400px;
 
             .ant-tabs-bar {
                 margin: 0;
