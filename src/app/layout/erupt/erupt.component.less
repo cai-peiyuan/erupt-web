@@ -1,7 +1,7 @@
 ::ng-deep {
 
     @header-h: 70px;
-    @aside-w: 300px;
+    @aside-w: 220px;
 
     .alain-default__aside {
         min-height: calc(100vh - @header-h);
@@ -27,7 +27,7 @@
     .ltr {
         .erupt_content {
             margin-top: @header-h;
-            margin-left: 200px;
+            margin-left: @aside-w;
         }
 
         .alain-default__collapsed .erupt_content {
@@ -38,7 +38,7 @@
             .erupt_content {
                 margin-top: @header-h;
                 margin-left: 0;
-                transform: translate3d(200px, 0, 0);
+                transform: translate3d(@aside-w, 0, 0);
             }
 
             .alain-default__collapsed .erupt_content {
@@ -53,7 +53,7 @@
     .rtl {
         .erupt_content {
             margin-top: @header-h;
-            margin-right: 200px;
+            margin-right: @aside-w;
         }
 
         .alain-default__collapsed .erupt_content {
@@ -64,7 +64,7 @@
             .erupt_content {
                 margin-top: @header-h;
                 margin-right: 0;
-                transform: translate3d(-200px, 0, 0);
+                transform: translate3d(-@aside-w, 0, 0);
             }
 
             .alain-default__collapsed .erupt_content {
