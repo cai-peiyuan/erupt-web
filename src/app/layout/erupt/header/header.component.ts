@@ -95,7 +95,7 @@ export class HeaderComponent implements OnInit {
             this.fixHide(data);
             this.loading = false;
             this.list = data.filter((w: Nav) => true);
-            console.log('this.list', this.list);
+            //console.log('this.list', this.list);
             /*if (this.list.length > 0 && this.list[0].children.length > 1 && this.menuLoaded == false) {
                 this.showFirstMenu();
                 this.menuLoaded = true;
@@ -114,7 +114,7 @@ export class HeaderComponent implements OnInit {
     ngAfterInit() {
         this.showFirstMenu();
     }
-    
+
     ngAfterContentInit() {
         this.showFirstMenu();
     }
@@ -163,7 +163,7 @@ export class HeaderComponent implements OnInit {
 
     //显示第一个菜单
     private showFirstMenu() {
-        console.log('显示第一个菜单')
+       // console.log('显示第一个菜单')
         if (this.menuSrv.menus[0]) {
             this.toModule(this.menuSrv.menus[0].children[0])
         }
@@ -174,9 +174,9 @@ export class HeaderComponent implements OnInit {
      * @param item
      */
     toModule(item: Menu): void {
-        console.log('左侧功能导航显示指定的模块的菜单', item)
+        //console.log('左侧功能导航显示指定的模块的菜单', item)
         let key = item.key;
-        console.log(this.menuSrv)
+        //console.log(this.menuSrv)
         for (const keyKey in this.menuSrv.menus[0].children) {
             this.menuSrv.menus[0].children[keyKey]['_hidden'] = true;
             if(this.menuSrv.menus[0].children[keyKey]['key'] == key){
