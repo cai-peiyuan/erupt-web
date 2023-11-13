@@ -1,6 +1,8 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {Edit} from "../../model/erupt-field.model";
 import {CacheService} from "@delon/cache";
+import {JoinedEditorOptions} from "ng-zorro-antd/code-editor/typings";
+import {NzConfigService} from "ng-zorro-antd/core/config";
 
 let codeEditorDarkKey = "code_editor_dark";
 
@@ -26,31 +28,52 @@ export class CodeEditorComponent implements OnInit {
 
     initComplete: boolean = false;
 
-    codeEditorEvent: any;
-
     dark = false;
 
     theme: 'vs-dark' | 'vs';
 
     fullScreen = false;
 
-    constructor(private cacheService: CacheService) {
+    editorOption: JoinedEditorOptions;
+
+    constructor(private cacheService: CacheService, private nzConfigService: NzConfigService) {
 
     }
 
     ngOnInit() {
         this.dark = this.cacheService.getNone(codeEditorDarkKey) || false;
         this.theme = this.dark ? 'vs-dark' : 'vs';
+        this.editorOption = {
+            language: this.language,
+            theme: this.theme,
+            readOnly: this.readonly,
+            suggestOnTriggerCharacters: true
+        };
+        // monaco.languages.registerCompletionItemProvider(this.edit.codeEditType.language, {
+        //     provideCompletionItems(model, position) {
+        //         return {
+        //             suggestions: []
+        //         };
+        //     },
+        //     triggerCharacters: ['$'] // 触发提示的字符，可以写多个
+        // });
     }
 
     codeEditorInit(event) {
         this.initComplete = true;
     }
 
-    switchChange(bool) {
+    switchChange(bool: boolean) {
         this.dark = bool;
         this.theme = this.dark ? 'vs-dark' : 'vs';
         this.cacheService.set(codeEditorDarkKey, this.dark);
+        const defaultEditorOption = this.nzConfigService.getConfigForComponent('codeEditor')?.defaultEditorOption || {};
+        this.nzConfigService.set('codeEditor', {
+            defaultEditorOption: {
+                ...defaultEditorOption,
+                theme: this.theme
+            }
+        });
     }
 
     toggleFullScreen(): void {

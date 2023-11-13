@@ -9,42 +9,42 @@ import ngRu from '@angular/common/locales/ru';
 import ngZhTw from '@angular/common/locales/zh-Hant';
 import ngKO from '@angular/common/locales/ko';
 import ngJA from '@angular/common/locales/ja';
-import {Injectable} from '@angular/core';
+import {Injectable, OnInit} from '@angular/core';
 import {
     DelonLocaleService,
     en_US as delonEnUS,
+    es_ES as delonEs,
+    fr_FR as delonFr,
     ja_JP as delonJp,
     ko_KR as delonKo,
     SettingsService,
     zh_CN as delonZhCn,
-    zh_TW as delonZhTw,
-    fr_FR as delonFr,
-    es_ES as delonEs
+    zh_TW as delonZhTw
 } from '@delon/theme';
 import {
     enUS as dfEn,
+    es as dfEs,
+    fr as dfFr,
     ja as dfJp,
     ko as dfKo,
-    zhCN as dfZhCn,
-    zhTW as dfZhTw,
-    fr as dfFr,
     ru as dfRu,
-    es as dfEs
+    zhCN as dfZhCn,
+    zhTW as dfZhTw
 } from 'date-fns/locale';
 import {NzSafeAny} from 'ng-zorro-antd/core/types';
 import {
     en_US as zorroEnUS,
+    es_ES as zorroEs,
+    fr_FR as zorroFr,
     ja_JP,
     ko_KR,
     NzI18nService,
+    ru_RU as zorroRu,
     zh_CN as zorroZhCN,
-    zh_TW as zorroZhTW,
-    fr_FR as zorroFr,
-    es_ES as zorroEs,
-    ru_RU as zorroRu
+    zh_TW as zorroZhTW
 } from 'ng-zorro-antd/i18n';
-import {WindowModel} from "@shared/model/window.model";
 import {HttpClient} from "@angular/common/http";
+import {EruptAppData} from "@shared/model/erupt-app.model";
 
 interface LangConfigData {
     abbr: string;
@@ -129,7 +129,7 @@ for (let key in LANGS) {
 
 
 @Injectable()
-export class I18NService {
+export class I18NService implements OnInit{
 
     currentLang: string;
 
@@ -137,12 +137,9 @@ export class I18NService {
 
     public datePipe: DatePipe;
 
-    private getDefaultLang(): string {
+    public getDefaultLang(): string {
         if (this.settings.layout.lang) {
             return this.settings.layout.lang;
-        }
-        if (!this.platform.isBrowser) {
-            return 'zh-CN';
         }
         let res = (navigator.languages ? navigator.languages[0] : null) || navigator.language;
         const arr = res.split('-');
@@ -150,21 +147,19 @@ export class I18NService {
     }
 
     constructor(
-        private http: HttpClient,
         private settings: SettingsService,
         private nzI18nService: NzI18nService,
         private delonLocaleService: DelonLocaleService,
         private platform: Platform
     ) {
-        const defaultLang = this.getDefaultLang();
-        this.currentLang = LANGS[defaultLang] ? defaultLang : 'en-US'
-        this.use(this.currentLang);
-        this.datePipe = new DatePipe(this.currentLang);
+    }
+
+    ngOnInit(): void {
     }
 
     loadLangData(success) {
         let xhr = new XMLHttpRequest();
-        xhr.open('GET', "assets/erupt.i18n.csv");
+        xhr.open('GET', "erupt.i18n.csv?v=" + EruptAppData.get().hash);
         xhr.send();
         xhr.onreadystatechange = () => {
             let langMapping = {};
@@ -194,6 +189,7 @@ export class I18NService {
         this.nzI18nService.setLocale(item.zorro);
         this.nzI18nService.setDateLocale(item.date);
         this.delonLocaleService.setLocale(item.delon);
+        this.datePipe = new DatePipe(lang);
         this.currentLang = lang;
     }
 

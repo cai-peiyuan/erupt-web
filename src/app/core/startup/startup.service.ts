@@ -20,7 +20,6 @@ import {I18NService} from "../i18n/i18n.service";
 export class StartupService {
     constructor(iconSrv: NzIconService,
                 private reuseTabService: ReuseTabService,
-                private settingService: SettingsService,
                 private titleService: TitleService,
                 private settingSrv: SettingsService,
                 private httpClient: HttpClient,
@@ -63,9 +62,8 @@ export class StartupService {
         window[GlobalKeys.getAppToken] = () => {
             return this.tokenService.get();
         };
-        let eruptEvent = window["eruptEvent"];
-        if (eruptEvent) {
-            eruptEvent.startup && eruptEvent.startup();
+        if (WindowModel.eruptEvent) {
+            WindowModel.eruptEvent.startup && WindowModel.eruptEvent.startup();
         }
         //路由复用
         this.settingSrv.layout['reuse'] = !!this.settingSrv.layout['reuse'];
@@ -83,13 +81,26 @@ export class StartupService {
         }
         return new Promise((resolve) => {
             // 应用信息：包括站点名、描述、年份
-            this.settingService.setApp({
+            this.settingSrv.setApp({
                 name: WindowModel.title,
                 description: WindowModel.desc
             });
             // 设置页面标题的后缀
             this.titleService.suffix = WindowModel.title;
             this.titleService.default = "";
+            {
+                let locales = EruptAppData.get().locales;
+                let localesObj = {};
+                for (let key of locales) {
+                    localesObj[key] = key;
+                }
+                let defaultLang = this.i18n.getDefaultLang();
+                if (!localesObj[defaultLang]) {
+                    defaultLang = locales[0]
+                }
+                this.settingSrv.setLayout('lang', defaultLang);
+                this.i18n.use(defaultLang)
+            }
             this.i18n.loadLangData(() => {
                 resolve(null);
             })

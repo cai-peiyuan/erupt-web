@@ -13,6 +13,7 @@ import {DOCUMENT} from "@angular/common";
 import {NzSafeAny} from "ng-zorro-antd/core/types";
 import {DomSanitizer} from "@angular/platform-browser";
 import {InputBoolean, InputNumber} from "@delon/util/decorator";
+import {EruptAppData} from "@shared/model/erupt-app.model";
 
 @Component({
     selector: "layout-header",
@@ -54,6 +55,8 @@ export class HeaderComponent implements OnInit {
     @Input() @InputNumber() maxLevelIcon = 3;
 
     @Input() @InputBoolean() disabledAcl = false;
+
+    showI18n: boolean = true;
 
     openDrawer() {
         this.drawerVisible = true;
@@ -109,6 +112,9 @@ export class HeaderComponent implements OnInit {
         this.appViewService.routerViewDescSubject.subscribe(value => {
             this.desc = value;
         })
+        if (EruptAppData.get().locales.length <= 1) {
+            this.showI18n = false;
+        }
     }
 
     ngAfterInit() {
@@ -145,7 +151,7 @@ export class HeaderComponent implements OnInit {
     }
 
     search() {
-        this.modal.create({
+        let model = this.modal.create({
             nzWrapClassName: "modal-xs",
             nzMaskClosable: true,
             nzKeyboard: true,
@@ -154,11 +160,9 @@ export class HeaderComponent implements OnInit {
             nzBodyStyle: {
                 padding: "12px"
             },
-            nzContent: HeaderSearchComponent,
-            nzComponentParams: {
-                menu: this.menu
-            }
-        })
+            nzContent: HeaderSearchComponent
+        });
+        model.getContentComponent().menu = this.menu
     }
 
     //显示第一个菜单

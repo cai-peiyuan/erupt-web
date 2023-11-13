@@ -213,6 +213,10 @@ export class EditTypeComponent implements OnInit, OnDestroy, DoCheck {
         });
     }
 
+    uploadAccept(accept: string[]): string[] {
+        return accept.map(it => '.' + it)
+    }
+
 
     iframeHeight = IframeHeight;
 
