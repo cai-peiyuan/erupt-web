@@ -8,7 +8,7 @@ import {MenuTypeEnum} from "../model/erupt-menu";
 
 export function generateMenuPath(type: string, value: string) {
     let menuValue = value || '';
-    if (menuValue.indexOf("fill=true") != -1) {
+    if (menuValue.indexOf("fill=1") != -1 || menuValue.indexOf("fill=true") != -1) {
         return '/fill' + joinPath(type, value);
     } else {
         return joinPath(type, value);
@@ -66,4 +66,13 @@ export function isNull(val: any): boolean {
 
 export function isNotNull(val: any) {
     return !isNull(val);
+}
+
+export function spliceArr(arr: any[], length: number): any[][] {
+    const res: any[][] = [];
+    while (arr.length > 0) {
+        const chunk: any[] = arr.splice(0, length);
+        res.push(chunk);
+    }
+    return res;
 }

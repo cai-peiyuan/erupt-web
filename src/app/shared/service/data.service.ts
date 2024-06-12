@@ -82,21 +82,13 @@ export class DataService {
         }
     }
 
-    getCommonHeader(): any {
-        return {
-            lang: this.i18n.currentLang || '',
-        };
-    }
-
-
     //获取结构
     getEruptBuild(eruptName: string, eruptParentName?: string): Observable<EruptBuildModel> {
         return this._http.get<EruptBuildModel>(RestPath.build + "/" + eruptName, null, {
             observe: "body",
             headers: {
                 erupt: eruptName,
-                eruptParent: eruptParentName || '',
-                ...this.getCommonHeader()
+                eruptParent: eruptParentName || ''
             }
         });
     }
@@ -106,8 +98,7 @@ export class DataService {
         return this._http.post(RestPath.data + "/extra-row/" + eruptName, condition, null, {
             observe: 'body',
             headers: {
-                erupt: eruptName,
-                ...this.getCommonHeader()
+                erupt: eruptName
             }
         });
     }
@@ -117,8 +108,7 @@ export class DataService {
             observe: "body",
             headers: {
                 erupt: eruptName,
-                eruptParent: eruptParentName || '',
-                ...this.getCommonHeader()
+                eruptParent: eruptParentName || ''
             }
         });
     }
@@ -148,8 +138,7 @@ export class DataService {
             observe: "body",
             headers: {
                 erupt: eruptName,
-                ...header,
-                ...this.getCommonHeader()
+                ...header
             }
         });
     }
@@ -160,8 +149,7 @@ export class DataService {
         return this._http.get<Tree[]>(RestPath.data + "/tree/" + eruptName, null, {
             observe: "body",
             headers: {
-                erupt: eruptName,
-                ...this.getCommonHeader()
+                erupt: eruptName
             }
         });
     }
@@ -171,20 +159,19 @@ export class DataService {
         return this._http.get<any>(RestPath.data + "/" + eruptName + "/" + id, null, {
             observe: "body",
             headers: {
-                erupt: eruptName,
-                ...this.getCommonHeader()
+                erupt: eruptName
             }
         });
     }
 
     //获取初始化数据
-    getInitValue(eruptName: string, eruptParentName?: string): Observable<any> {
+    getInitValue(eruptName: string, eruptParentName?: string, header?: object): Observable<any> {
         return this._http.get<any>(RestPath.data + "/init-value/" + eruptName, null, {
             observe: "body",
             headers: {
                 erupt: eruptName,
                 eruptParent: eruptParentName || '',
-                ...this.getCommonHeader()
+                ...header
             }
         });
     }
@@ -196,8 +183,7 @@ export class DataService {
             observe: "body",
             headers: {
                 erupt: eruptName,
-                eruptParent: eruptParentName || '',
-                ...this.getCommonHeader()
+                eruptParent: eruptParentName || ''
             }
         });
     }
@@ -207,8 +193,7 @@ export class DataService {
             observe: "body",
             headers: {
                 erupt: eruptName,
-                eruptParent: eruptParentName || '',
-                ...this.getCommonHeader()
+                eruptParent: eruptParentName || ''
             }
         });
     }
@@ -218,8 +203,7 @@ export class DataService {
             observe: "body",
             headers: {
                 erupt: eruptName,
-                eruptParent: eruptParentName || '',
-                ...this.getCommonHeader()
+                eruptParent: eruptParentName || ''
             }
         });
     }
@@ -229,8 +213,7 @@ export class DataService {
         return this._http.get<Tree[]>(RestPath.data + "/tab/tree/" + eruptName + "/" + tabFieldName, null, {
             observe: "body",
             headers: {
-                erupt: eruptName,
-                ...this.getCommonHeader()
+                erupt: eruptName
             }
         });
     }
@@ -239,22 +222,33 @@ export class DataService {
         return this._http.get<Checkbox[]>(RestPath.data + "/" + eruptName + "/checkbox/" + fieldName, null, {
             observe: "body",
             headers: {
-                erupt: eruptName,
-                ...this.getCommonHeader()
+                erupt: eruptName
             }
         });
     }
 
+    //自定义按钮表单初始值
+    operatorFormValue(eruptName: string, operatorCode: string, ids: any): Observable<any> {
+        return this._http.post(RestPath.data + "/" + eruptName + "/operator/" + operatorCode + "/form-value", null, {
+            ids: ids
+        }, {
+            observe: "body",
+            headers: {
+                erupt: eruptName
+            }
+        });
+    }
+
+
     //执行自定义operator方法
-    execOperatorFun(eruptName: string, operatorCode: string, ids: any, param: object) {
+    execOperatorFun(eruptName: string, operatorCode: string, ids: any, param: object): Observable<EruptApiModel> {
         return this._http.post(RestPath.data + "/" + eruptName + "/operator/" + operatorCode, {
             ids: ids,
             param: param
         }, null, {
             observe: "body",
             headers: {
-                erupt: eruptName,
-                ...this.getCommonHeader()
+                erupt: eruptName
             }
         });
     }
@@ -263,8 +257,7 @@ export class DataService {
         return this._http.get<Tree[]>(RestPath.data + "/depend-tree/" + eruptName, null, {
             observe: "body",
             headers: {
-                erupt: eruptName,
-                ...this.getCommonHeader()
+                erupt: eruptName
             }
         });
     }
@@ -276,8 +269,7 @@ export class DataService {
             param["dependValue"] = dependVal;
         }
         let header = {
-            erupt: eruptName,
-            ...this.getCommonHeader()
+            erupt: eruptName
         };
         if (eruptParent) {
             header["eruptParent"] = eruptParent;
@@ -294,8 +286,7 @@ export class DataService {
         return this._http.post<any>(RestPath.data + "/add/" + eruptName + "/drill/" + code + "/" + val, data, null, {
             observe: null,
             headers: {
-                erupt: eruptName,
-                ...this.getCommonHeader()
+                erupt: eruptName
             }
         });
     }
@@ -306,8 +297,7 @@ export class DataService {
             observe: null,
             headers: {
                 erupt: eruptName,
-                ...headers,
-                ...this.getCommonHeader()
+                ...headers
             }
         });
     }
@@ -317,8 +307,7 @@ export class DataService {
         return this._http.post<EruptApiModel>(RestPath.dataModify + "/" + eruptName + "/update", data, null, {
             observe: null,
             headers: {
-                erupt: eruptName,
-                ...this.getCommonHeader()
+                erupt: eruptName
             }
         });
     }
@@ -332,8 +321,7 @@ export class DataService {
     deleteEruptDataList(eruptName: string, ids: any[]): Observable<EruptApiModel> {
         return this._http.post(RestPath.dataModify + "/" + eruptName + "/delete", ids, null, {
             headers: {
-                erupt: eruptName,
-                ...this.getCommonHeader()
+                erupt: eruptName
             }
         });
     }
@@ -342,8 +330,7 @@ export class DataService {
         return this._http.post(RestPath.data + "/validate-erupt/" + eruptName, data, null, {
             headers: {
                 erupt: eruptName,
-                eruptParent: eruptParent || "",
-                ...this.getCommonHeader()
+                eruptParent: eruptParent || ""
             }
         });
     }
@@ -351,8 +338,7 @@ export class DataService {
     eruptTabAdd(eruptName: string, tabName: string, data: any): Observable<EruptApiModel> {
         return this._http.post(RestPath.dataModify + "/tab-add/" + eruptName + "/" + tabName, data, null, {
             headers: {
-                erupt: eruptName,
-                ...this.getCommonHeader()
+                erupt: eruptName
             }
         });
     }
@@ -360,8 +346,7 @@ export class DataService {
     eruptTabUpdate(eruptName: string, tabName: string, data: any): Observable<EruptApiModel> {
         return this._http.post(RestPath.dataModify + "/tab-update/" + eruptName + "/" + tabName, data, null, {
             headers: {
-                erupt: eruptName,
-                ...this.getCommonHeader()
+                erupt: eruptName
             }
         });
     }
@@ -369,8 +354,7 @@ export class DataService {
     eruptTabDelete(eruptName: string, tabName: string, data: any): Observable<EruptApiModel> {
         return this._http.post(RestPath.dataModify + "/tab-delete/" + eruptName + "/" + tabName, data, null, {
             headers: {
-                erupt: eruptName,
-                ...this.getCommonHeader()
+                erupt: eruptName
             }
         });
     }
@@ -411,8 +395,7 @@ export class DataService {
     //获取菜单
     getMenu(): Observable<MenuVo[]> {
         return this._http.get<MenuVo[]>(RestPath.erupt + "/menu", null, {
-            observe: "body",
-            headers: this.getCommonHeader()
+            observe: "body"
         });
     }
 
@@ -425,8 +408,7 @@ export class DataService {
             responseType: "arraybuffer",
             observe: 'events',
             headers: {
-                erupt: eruptName,
-                ...this.getCommonHeader()
+                erupt: eruptName
             }
         }).subscribe((res) => {
             if (res.type !== 4) {
@@ -447,8 +429,7 @@ export class DataService {
             observe: 'events',
             headers: {
                 erupt: eruptName,
-                ...header,
-                ...this.getCommonHeader()
+                ...header
             }
         }).subscribe((res) => {
             if (res.type !== 4) {

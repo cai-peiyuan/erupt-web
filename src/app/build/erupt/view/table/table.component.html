@@ -60,7 +60,7 @@
 
                         <ng-container *ngIf="eruptBuildModel.eruptModel.eruptJson.power.query">
                             <button nz-button nzType="default" [nzSearch]="true"
-                                    class="mb-sm" [nzLoading]="st?._loading" id="erupt-btn-query"
+                                    class="mb-sm" [nzLoading]="dataPage.querying" id="erupt-btn-query"
                                     (click)="query()">
                                 <i nz-icon nzType="search" nzTheme="outline"></i>{{'table.query'|translate}}
                             </button>
@@ -102,7 +102,7 @@
                                     <i nz-icon [nzType]="hideCondition?'caret-down':'caret-up'" nzTheme="outline"></i>
                                 </button>
                                 <button class="mb-sm" nz-button (click)="clearCondition()" id="erupt-btn-reset"
-                                        [disabled]="st?._loading">
+                                        [disabled]="dataPage.querying">
                                     <i nz-icon nzType="sync" nzTheme="outline"></i>{{'table.reset'|translate}}
                                 </button>
                             </ng-container>
@@ -126,8 +126,8 @@
                     <!--                        </div>-->
                     <!--                    </ng-container>-->
                     <st #st resizable [loading]="dataPage.querying" [widthMode]="{strictBehavior:'truncate'}"
-                        [body]="bodyTpl" [data]="dataPage.data" [columns]="columns"
-                        [scroll]="{x: (clientWidth > 768 ? showColumnLength * 160 : 0) + 'px'}"
+                        [body]="bodyTpl" [data]="dataPage.data" [columns]="columns" [virtualScroll]="dataPage.data.length >= 100"
+                        [scroll]="{x: (clientWidth > 768 ? showColumnLength * 160 : 0) + 'px', y: (525) + 'px'}"
                         (change)="tableDataChange($event)" [bordered]="settingSrv.layout['bordered']"
                         [page]="dataPage.page" [size]="'middle'"
                     >

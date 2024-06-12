@@ -22,6 +22,7 @@ export interface Chart {
     linkage: boolean;
     option: object;
     chartOption: any;
+    remark?: string;
     loading?: boolean;
 }
 
@@ -91,12 +92,14 @@ export enum DimType {
     YEAR = "YEAR",
 
     REFERENCE = "REFERENCE",
-    REFERENCE_CASCADE = "REFERENCE_CASCADE",
     REFERENCE_MULTI = "REFERENCE_MULTI",
+    REFERENCE_CASCADE = "REFERENCE_CASCADE",
     REFERENCE_TREE_RADIO = "REFERENCE_TREE_RADIO",
     REFERENCE_TREE_MULTI = "REFERENCE_TREE_MULTI",
     REFERENCE_RADIO = "REFERENCE_RADIO",
-    REFERENCE_CHECKBOX = "REFERENCE_CHECKBOX"
+    REFERENCE_CHECKBOX = "REFERENCE_CHECKBOX",
+    REFERENCE_TABLE_RADIO = "REFERENCE_TABLE_RADIO",
+    REFERENCE_TABLE_MULTI = "REFERENCE_TABLE_MULTI",
 }
 
 export interface BiData {

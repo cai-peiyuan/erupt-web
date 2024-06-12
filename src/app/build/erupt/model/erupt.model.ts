@@ -50,6 +50,7 @@ interface Layout {
     tableRightFixed: number;
     pageSize: number;
     pageSizes: number[];
+    refreshTime: number;
 }
 
 
@@ -106,6 +107,7 @@ export interface RowOperation {
     mode: OperationMode;
     type: OperationType;
     tip: string;
+    callHint: string;
     ifExpr: string;
     ifExprBehavior: OperationIfExprBehavior;
     tpl: Tpl;

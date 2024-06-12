@@ -1,11 +1,10 @@
-import {Component, Inject, Input, OnInit, ViewChild} from "@angular/core";
+import {Component, Inject, Input, OnDestroy, OnInit, ViewChild} from "@angular/core";
 import {DataService} from "@shared/service/data.service";
 import {Drill, DrillInput, EruptModel, Row, RowOperation} from "../../model/erupt.model";
 
 import {SettingsService} from "@delon/theme";
 import {EditTypeComponent} from "../../components/edit-type/edit-type.component";
 import {EditComponent} from "../edit/edit.component";
-import {ActivatedRoute} from "@angular/router";
 import {EruptBuildModel} from "../../model/erupt-build.model";
 import {
     FormSize,
@@ -33,6 +32,7 @@ import {deepCopy} from "@delon/util";
 import {ModalButtonOptions} from "ng-zorro-antd/modal/modal-types";
 import {STChange, STPage} from "@delon/abc/st/st.interfaces";
 import {AppViewService} from "@shared/service/app-view.service";
+import {CodeEditorComponent} from "../../components/code-editor/code-editor.component";
 
 
 @Component({
@@ -40,7 +40,7 @@ import {AppViewService} from "@shared/service/app-view.service";
     templateUrl: "./table.component.html",
     styleUrls: ["./table.component.less"]
 })
-export class TableComponent implements OnInit {
+export class TableComponent implements OnInit, OnDestroy {
 
 
     constructor(
@@ -51,11 +51,10 @@ export class TableComponent implements OnInit {
         private msg: NzMessageService,
         @Inject(NzModalService)
         private modal: NzModalService,
-        public route: ActivatedRoute,
         private appViewService: AppViewService,
         private dataHandler: DataHandlerService,
         private uiBuildService: UiBuildService,
-        private i18n: I18NService,
+        private i18n: I18NService
     ) {
     }
 
@@ -130,6 +129,8 @@ export class TableComponent implements OnInit {
 
     header: object;
 
+    refreshTimeInterval: any;
+
     @Input() set drill(drill: DrillInput) {
         this._drill = drill;
         this.init(this.dataService.getEruptBuild(drill.erupt), {
@@ -189,6 +190,10 @@ export class TableComponent implements OnInit {
 
     }
 
+    ngOnDestroy(): void {
+        this.refreshTimeInterval && clearInterval(this.refreshTimeInterval);
+    }
+
     init(observable: Observable<EruptBuildModel>, req: {
         url: string,
         header: any
@@ -231,6 +236,11 @@ export class TableComponent implements OnInit {
                             this.dataPage.showPagination = false;
                             this.dataPage.page.show = false;
                         }
+                    }
+                    if (layout.refreshTime && layout.refreshTime > 0) {
+                        this.refreshTimeInterval = setInterval(() => {
+                            this.query(1);
+                        }, layout.refreshTime);
                     }
                 }
                 let dt = eb.eruptModel.eruptJson.linkTree;
@@ -292,12 +302,12 @@ export class TableComponent implements OnInit {
             sort: sortString,
             ...query
         }, this.header).subscribe(page => {
-            this.st.data = page.list;
-            // this.dataPage.ps = page.pageSize;
-            // this.dataPage.pi = page.pageIndex;
             this.dataPage.querying = false;
-            this.dataPage.data = page.list;
+            this.dataPage.data = page.list
             this.dataPage.total = page.total;
+            // for (let ele of spliceArr(page.list, 20)) {
+            //     this.dataPage.data.push(...ele)
+            // }
         })
         this.extraRowFun(query);
     }
@@ -586,7 +596,10 @@ export class TableComponent implements OnInit {
                     padding: "0"
                 },
                 nzFooter: null,
-                nzContent: EruptIframeComponent
+                nzContent: EruptIframeComponent,
+                nzOnCancel: () => {
+                    // this.query();
+                }
             });
             ref.getContentComponent().url = url;
         } else if (ro.type === OperationType.ERUPT) {
@@ -612,10 +625,12 @@ export class TableComponent implements OnInit {
                         modal.componentInstance.nzCancelDisabled = false;
                         this.selectedRows = [];
                         if (res.status === Status.SUCCESS) {
-                            this.query(1);
+                            this.query();
                             if (res.data) {
                                 try {
-                                    let msg = this.msg;
+                                    let ev = this.evalVar();
+                                    let msg = ev.msg;
+                                    let codeModal = ev.codeModal;
                                     eval(res.data);
                                 } catch (e) {
                                     this.msg.error(e);
@@ -631,31 +646,58 @@ export class TableComponent implements OnInit {
                 modal.getContentComponent().mode = Scene.ADD;
                 modal.getContentComponent().eruptBuildModel = {eruptModel: operationErupt};
                 modal.getContentComponent().parentEruptName = this.eruptBuildModel.eruptModel.eruptName;
-                this.dataService.getInitValue(operationErupt.eruptName, this.eruptBuildModel.eruptModel.eruptName).subscribe(data => {
-                    this.dataHandlerService.objectToEruptValue(data, {
-                        eruptModel: operationErupt
-                    });
+                this.dataService.operatorFormValue(this.eruptBuildModel.eruptModel.eruptName, ro.code, ids).subscribe(data => {
+                    if (data) {
+                        this.dataHandlerService.objectToEruptValue(data, {
+                            eruptModel: operationErupt
+                        });
+                    }
                 });
             } else {
-                this.modal.confirm({
-                    nzTitle: ro.title,
-                    nzContent: this.i18n.fanyi("table.hint.operation"),
-                    nzCancelText: this.i18n.fanyi("global.close"),
-                    nzOnOk: async () => {
-                        this.selectedRows = [];
-                        let res = await this.dataService.execOperatorFun(this.eruptBuildModel.eruptModel.eruptName, ro.code, ids, null)
-                            .toPromise().then();
-                        this.query(1);
+                // 兼容旧版本, 无callHint配置的情况
+                if (null == ro.callHint) {
+                    ro.callHint = this.i18n.fanyi("table.hint.operation");
+                }
+                if (ro.callHint) {
+                    this.modal.confirm({
+                        nzTitle: ro.title,
+                        nzContent: ro.callHint,
+                        nzCancelText: this.i18n.fanyi("global.close"),
+                        nzOnOk: async () => {
+                            this.selectedRows = [];
+                            let res = await this.dataService.execOperatorFun(this.eruptBuildModel.eruptModel.eruptName, ro.code, ids, null)
+                                .toPromise().then();
+                            this.query();
+                            if (res.data) {
+                                try {
+                                    let ev = this.evalVar();
+                                    let msg = ev.msg;
+                                    let codeModal = ev.codeModal;
+                                    eval(res.data);
+                                } catch (e) {
+                                    this.msg.error(e);
+                                }
+                            }
+                        }
+                    });
+                } else {
+                    this.selectedRows = [];
+                    let msgLoading = this.msg.loading(ro.title);
+                    this.dataService.execOperatorFun(this.eruptBuildModel.eruptModel.eruptName, ro.code, ids, null).subscribe(res => {
+                        this.msg.remove(msgLoading.messageId);
                         if (res.data) {
                             try {
-                                let msg = this.msg;
+                                let ev = this.evalVar();
+                                let msg = ev.msg;
+                                let codeModal = ev.codeModal;
                                 eval(res.data);
                             } catch (e) {
                                 this.msg.error(e);
                             }
                         }
-                    }
-                });
+                    });
+
+                }
             }
         }
     }
@@ -706,6 +748,7 @@ export class TableComponent implements OnInit {
             }
         });
         modal.getContentComponent().eruptBuildModel = this.eruptBuildModel
+        modal.getContentComponent().header = this._drill ? DataService.drillToHeader(this._drill) : {};
     }
 
     pageIndexChange(index) {
@@ -843,6 +886,29 @@ export class TableComponent implements OnInit {
         });
         model.getContentComponent().eruptModel = this.eruptBuildModel.eruptModel;
         model.getContentComponent().drillInput = this._drill;
+    }
+
+    //提供自定义表达式可调用函数
+    evalVar() {
+        return {
+            msg: this.msg,
+            codeModal: (lang: string, code: any) => {
+                let ref = this.modal.create({
+                    nzKeyboard: true,
+                    nzMaskClosable: true,
+                    nzCancelText: this.i18n.fanyi("global.close"),
+                    nzWrapClassName: "modal-lg",
+                    nzContent: CodeEditorComponent,
+                    nzFooter: null,
+                    nzBodyStyle: {padding: '0'}
+                });
+                ref.getContentComponent().height = 500;
+                ref.getContentComponent().readonly = true;
+                ref.getContentComponent().language = lang;
+                // @ts-ignore
+                ref.getContentComponent().edit = {$value: code}
+            }
+        }
     }
 
 }
