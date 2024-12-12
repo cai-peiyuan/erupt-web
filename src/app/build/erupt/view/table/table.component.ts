@@ -1,6 +1,6 @@
 import {Component, Inject, Input, OnDestroy, OnInit, ViewChild} from "@angular/core";
 import {DataService} from "@shared/service/data.service";
-import {Drill, DrillInput, EruptModel, Row, RowOperation} from "../../model/erupt.model";
+import {Drill, DrillInput, EruptModel, Power, Row, RowOperation} from "../../model/erupt.model";
 
 import {SettingsService} from "@delon/theme";
 import {EditTypeComponent} from "../../components/edit-type/edit-type.component";
@@ -19,7 +19,7 @@ import {
 import {DataHandlerService} from "../../service/data-handler.service";
 import {ExcelImportComponent} from "../../components/excel-import/excel-import.component";
 import {Status} from "../../model/erupt-api.model";
-import {EruptFieldModel} from "../../model/erupt-field.model";
+import {EruptFieldModel, OpenWay} from "../../model/erupt-field.model";
 import {Observable} from "rxjs";
 import {EruptIframeComponent} from "@shared/component/iframe.component";
 import {UiBuildService} from "../../service/ui-build.service";
@@ -33,6 +33,8 @@ import {ModalButtonOptions} from "ng-zorro-antd/modal/modal-types";
 import {STChange, STPage} from "@delon/abc/st/st.interfaces";
 import {AppViewService} from "@shared/service/app-view.service";
 import {CodeEditorComponent} from "../../components/code-editor/code-editor.component";
+import {NzDrawerService} from "ng-zorro-antd/drawer";
+import {TableStyle} from "../../model/erupt.vo";
 
 
 @Component({
@@ -54,7 +56,9 @@ export class TableComponent implements OnInit, OnDestroy {
         private appViewService: AppViewService,
         private dataHandler: DataHandlerService,
         private uiBuildService: UiBuildService,
-        private i18n: I18NService
+        private i18n: I18NService,
+        @Inject(NzDrawerService)
+        private drawerService: NzDrawerService
     ) {
     }
 
@@ -69,7 +73,9 @@ export class TableComponent implements OnInit, OnDestroy {
 
     deleting: boolean = false;
 
-    clientWidth = document.body.clientWidth;
+    clientWidth: number = document.body.clientWidth;
+
+    clientHeight: number = document.body.clientHeight;
 
     hideCondition = false;
 
@@ -295,6 +301,7 @@ export class TableComponent implements OnInit, OnDestroy {
             }
             sortString = arr.join(",")
         }
+        this.selectedRows = [];
         this.dataPage.querying = true;
         this.dataService.queryEruptTableData(this.eruptBuildModel.eruptModel.eruptName, this.dataPage.url, {
             pageIndex: this.dataPage.pi,
@@ -303,7 +310,7 @@ export class TableComponent implements OnInit, OnDestroy {
             ...query
         }, this.header).subscribe(page => {
             this.dataPage.querying = false;
-            this.dataPage.data = page.list
+            this.dataPage.data = page.list || [];
             this.dataPage.total = page.total;
             // for (let ele of spliceArr(page.list, 20)) {
             //     this.dataPage.data.push(...ele)
@@ -347,21 +354,40 @@ export class TableComponent implements OnInit, OnDestroy {
             tableOperators.push({
                 icon: "eye",
                 click: (record: any, modal: any) => {
-                    let ref = this.modal.create({
-                        nzWrapClassName: fullLine ? null : "modal-lg edit-modal-lg",
-                        nzWidth: fullLine ? 550 : null,
-                        nzStyle: {top: "60px"},
-                        nzMaskClosable: true,
-                        nzKeyboard: true,
-                        nzCancelText: this.i18n.fanyi("global.close") + "（ESC）",
-                        nzOkText: null,
-                        nzTitle: this.i18n.fanyi("global.view"),
-                        nzContent: EditComponent
-                    });
-                    ref.getContentComponent().readonly = true;
-                    ref.getContentComponent().eruptBuildModel = this.eruptBuildModel;
-                    ref.getContentComponent().behavior = Scene.EDIT;
-                    ref.getContentComponent().id = record[this.eruptBuildModel.eruptModel.eruptJson.primaryKeyCol];
+                    let params = {
+                        readonly: true,
+                        eruptBuildModel: this.eruptBuildModel,
+                        behavior: Scene.EDIT,
+                        id: record[this.eruptBuildModel.eruptModel.eruptJson.primaryKeyCol]
+                    };
+                    if (this.settingSrv.layout['drawDraw']) {
+                        //抽屉方式打开详情
+                        this.drawerService.create({
+                            nzTitle: this.i18n.fanyi("global.view"),
+                            nzWidth: "75%",
+                            nzContent: EditComponent,
+                            nzContentParams: params
+                        });
+                    } else {
+                        let ref = this.modal.create({
+                            nzWrapClassName: fullLine ? null : "modal-lg edit-modal-lg",
+                            nzWidth: fullLine ? 550 : null,
+                            nzStyle: {top: "60px"},
+                            nzMaskClosable: true,
+                            nzKeyboard: true,
+                            nzCancelText: this.i18n.fanyi("global.close") + "（ESC）",
+                            nzOkText: null,
+                            nzTitle: this.i18n.fanyi("global.view"),
+                            nzContent: EditComponent
+                        });
+                        Object.assign(ref.getContentComponent(), params)
+                    }
+                },
+                iif: (item) => {
+                    if (item[TableStyle.power]) {
+                        return (<Power>item[TableStyle.power]).viewDetails !== false
+                    }
+                    return true;
                 }
             });
         }
@@ -382,7 +408,7 @@ export class TableComponent implements OnInit, OnDestroy {
         }
         for (let i in this.eruptBuildModel.eruptModel.eruptJson.rowOperation) {
             let ro = this.eruptBuildModel.eruptModel.eruptJson.rowOperation[i];
-            if (ro.mode !== OperationMode.BUTTON) {
+            if (ro.mode !== OperationMode.BUTTON && ro.mode !== OperationMode.MULTI_ONLY) {
                 let text = "";
                 if (ro.icon) {
                     text = `<i class=\"${ro.icon}\"></i>`;
@@ -473,6 +499,11 @@ export class TableComponent implements OnInit, OnDestroy {
             tableOperators.push({
                 icon: "edit",
                 click: (record: any) => {
+                    let params = {
+                        eruptBuildModel: this.eruptBuildModel,
+                        id: record[this.eruptBuildModel.eruptModel.eruptJson.primaryKeyCol],
+                        behavior: Scene.EDIT
+                    }
                     const model = this.modal.create({
                         nzWrapClassName: fullLine ? null : "modal-lg edit-modal-lg",
                         nzWidth: fullLine ? 550 : null,
@@ -515,9 +546,13 @@ export class TableComponent implements OnInit, OnDestroy {
                             }
                         }
                     });
-                    model.getContentComponent().eruptBuildModel = this.eruptBuildModel;
-                    model.getContentComponent().id = record[this.eruptBuildModel.eruptModel.eruptJson.primaryKeyCol];
-                    model.getContentComponent().behavior = Scene.EDIT;
+                    Object.assign(model.getContentComponent(), params)
+                },
+                iif: (item) => {
+                    if (item[TableStyle.power]) {
+                        return (<Power>item[TableStyle.power]).edit !== false
+                    }
+                    return true;
                 }
             });
         }
@@ -543,6 +578,12 @@ export class TableComponent implements OnInit, OnDestroy {
                                 this.msg.success(this.i18n.fanyi('global.delete.success'));
                             }
                         });
+                },
+                iif: (item) => {
+                    if (item[TableStyle.power]) {
+                        return (<Power>item[TableStyle.power]).delete !== false
+                    }
+                    return true;
                 }
             });
         }
@@ -567,14 +608,14 @@ export class TableComponent implements OnInit, OnDestroy {
      * @param rowOperation 行按钮对象
      * @param data 数据（单个执行时使用）
      */
-    createOperator(rowOperation: RowOperation, data?: object, reloadModal?: boolean) {
+    createOperator(rowOperation: RowOperation, data?: object) {
         const eruptModel = this.eruptBuildModel.eruptModel;
         const ro = rowOperation;
         let ids = [];
         if (data) {
             ids = [data[eruptModel.eruptJson.primaryKeyCol]];
         } else {
-            if (ro.mode === OperationMode.MULTI && this.selectedRows.length === 0) {
+            if ((ro.mode === OperationMode.MULTI || ro.mode === OperationMode.MULTI_ONLY) && this.selectedRows.length === 0) {
                 this.msg.warning(this.i18n.fanyi("table.require.select_one"));
                 return;
             }
@@ -584,24 +625,44 @@ export class TableComponent implements OnInit, OnDestroy {
         }
         if (ro.type === OperationType.TPL) {
             let url = this.dataService.getEruptOperationTpl(this.eruptBuildModel.eruptModel.eruptName, ro.code, ids);
-            let ref = this.modal.create({
-                nzKeyboard: true,
-                nzTitle: ro.title,
-                nzMaskClosable: false,
-                nzWidth: ro.tpl.width,
-                nzStyle: {top: "20px"},
-                // nzWrapClassName: "modal-xxl",
-                nzWrapClassName: ro.tpl.width || "modal-lg",
-                nzBodyStyle: {
-                    padding: "0"
-                },
-                nzFooter: null,
-                nzContent: EruptIframeComponent,
-                nzOnCancel: () => {
-                    // this.query();
-                }
-            });
-            ref.getContentComponent().url = url;
+            if (!ro.tpl.openWay || ro.tpl.openWay == OpenWay.MODAL) {
+                let ref = this.modal.create({
+                    nzKeyboard: true,
+                    nzTitle: ro.title,
+                    nzMaskClosable: false,
+                    nzWidth: ro.tpl.width,
+                    nzStyle: {top: "20px"},
+                    // nzWrapClassName: "modal-xxl",
+                    nzWrapClassName: ro.tpl.width || "modal-lg",
+                    nzBodyStyle: {
+                        padding: "0"
+                    },
+                    nzFooter: null,
+                    nzContent: EruptIframeComponent,
+                    nzOnCancel: () => {
+                        // this.query();
+                    }
+                });
+                ref.getContentComponent().url = url;
+            } else {
+                this.drawerService.create({
+                    nzTitle: ro.title,
+                    nzKeyboard: true,
+                    nzMaskClosable: true,
+                    // @ts-ignore
+                    nzPlacement: ro.tpl.drawerPlacement.toLowerCase(),
+                    nzWidth: ro.tpl.width || "40%",
+                    nzHeight: ro.tpl.height || "40%",
+                    nzBodyStyle: {
+                        padding: 0
+                    },
+                    nzFooter: null,
+                    nzContent: EruptIframeComponent,
+                    nzContentParams: {
+                        url: url
+                    }
+                })
+            }
         } else if (ro.type === OperationType.ERUPT) {
             let operationErupt: EruptModel = null;
             if (this.eruptBuildModel.operationErupts) {
@@ -629,7 +690,6 @@ export class TableComponent implements OnInit, OnDestroy {
                             if (res.data) {
                                 try {
                                     let ev = this.evalVar();
-                                    let msg = ev.msg;
                                     let codeModal = ev.codeModal;
                                     eval(res.data);
                                 } catch (e) {
@@ -671,7 +731,6 @@ export class TableComponent implements OnInit, OnDestroy {
                             if (res.data) {
                                 try {
                                     let ev = this.evalVar();
-                                    let msg = ev.msg;
                                     let codeModal = ev.codeModal;
                                     eval(res.data);
                                 } catch (e) {
@@ -688,7 +747,6 @@ export class TableComponent implements OnInit, OnDestroy {
                         if (res.data) {
                             try {
                                 let ev = this.evalVar();
-                                let msg = ev.msg;
                                 let codeModal = ev.codeModal;
                                 eval(res.data);
                             } catch (e) {
@@ -891,7 +949,6 @@ export class TableComponent implements OnInit, OnDestroy {
     //提供自定义表达式可调用函数
     evalVar() {
         return {
-            msg: this.msg,
             codeModal: (lang: string, code: any) => {
                 let ref = this.modal.create({
                     nzKeyboard: true,
