@@ -14,6 +14,8 @@ import {NzSafeAny} from "ng-zorro-antd/core/types";
 import {DomSanitizer} from "@angular/platform-browser";
 import {InputBoolean, InputNumber} from "@delon/util/decorator";
 import {EruptAppData} from "@shared/model/erupt-app.model";
+import {EruptTenantInfoData} from "../../../build/erupt/model/erupt-tenant";
+import {DataService} from "@shared/service/data.service";
 
 @Component({
     selector: "layout-header",
@@ -31,8 +33,6 @@ export class HeaderComponent implements OnInit {
     isFullScreen: boolean = false;
 
     collapse: boolean = false;
-
-    title = WindowModel.title;
 
     logoPath: string = WindowModel.logoPath;
 
@@ -58,6 +58,8 @@ export class HeaderComponent implements OnInit {
 
     showI18n: boolean = true;
 
+    tenantDomainInfo = EruptTenantInfoData.get();
+
     openDrawer() {
         this.drawerVisible = true;
     }
@@ -75,6 +77,11 @@ export class HeaderComponent implements OnInit {
                 private router: Router,
                 private appViewService: AppViewService,
                 @Inject(NzModalService) private modal: NzModalService) {
+        if (this.tenantDomainInfo) {
+            if (this.tenantDomainInfo.logo) {
+                this.logoPath = DataService.previewAttachment(this.tenantDomainInfo.logo)
+            }
+        }
     }
 
     ngOnInit() {
