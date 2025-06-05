@@ -195,6 +195,11 @@ export class HeaderComponent implements OnInit {
             }
         }
         this.menuSrv.open(item);
+        if(item.link == '/'){
+            this.settings.setLayout('collapsed', true); // 首页菜单也关闭
+        }else{
+            this.settings.setLayout('collapsed', false); // 其他页菜单自动弹开
+        }
     }
 
     private fixHide(ls: Nav[]): void {
