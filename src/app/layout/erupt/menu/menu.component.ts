@@ -286,6 +286,7 @@ export class MenuComponent implements OnInit, OnDestroy {
         });
         this.openByUrl(router.url);
         this.ngZone.runOutsideAngular(() => this.genFloating());
+        this.settings.setLayout('collapsed', true); // 设置菜单默认关闭
     }
 
     private fixHide(ls: Nav[]): void {
